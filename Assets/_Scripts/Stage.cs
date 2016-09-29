@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using Newtonsoft.Json;
+using PogoTools;
+using System.Linq;
+using UniRx;
 
 [JsonObject (MemberSerialization.OptIn)]
 public class Stage : MonoBehaviour, ISer
@@ -109,6 +112,10 @@ public class Stage : MonoBehaviour, ISer
 		}
 	}
 
+
+	public bool start_cell_choose_mode;
+	public Vector2 gizmo_current_point;
+
 	void OnDrawGizmosSelected ()
 	{
 		if (Units == null || NeedInitialize) {
@@ -144,6 +151,16 @@ public class Stage : MonoBehaviour, ISer
 				new Vector3 (SMFocusUnit.Rect.x + SMFocusUnit.Rect.width, SMFocusUnit.Rect.y + SMFocusUnit.Rect.height - 100, 0f),
 				new Vector3 (SMFocusUnit.Rect.x + SMFocusUnit.Rect.width, SMFocusUnit.Rect.y + SMFocusUnit.Rect.height + 100, 0f)
 			);
+
+			if (start_cell_choose_mode) {
+				Gizmos.color = Color.blue;
+				Gizmos.DrawLine (gizmo_current_point, SMFocusUnit.Rect.center);
+			} else {
+				if (SMFocusUnit.Cell.Type == CellType.START) {
+					Gizmos.color = Color.blue;
+					Gizmos.DrawLine (SMFocusUnit.Rect.center, SMFocusUnit.Rect.center + SMFocusUnit.Cell.Detail.Direction);
+				}
+			}
 		}
 	}
 
@@ -268,12 +285,52 @@ public class Stage : MonoBehaviour, ISer
 	// Use this for initialization
 	void Start ()
 	{
-	
+		LoadStage ();
 	}
-	
-	// Update is called once per frame
-	void Update ()
+
+	public int stage_num;
+
+	public void LoadStage ()
 	{
-	
+		TextAsset ta = Resources.Load<TextAsset> (string.Format ("StageDatas/stage_{0:000}", stage_num));
+		this.Deser (ta.text);
+
+		for (int i = 0; i < BrickContainer.childCount; i++) {
+			Transform t = BrickContainer.GetChild (i);
+			if (t.gameObject.name == "ingame_0") {
+				t.gameObject.SetActive (false);
+			}
+		}
+
+		StartUnitList = Units.Where (_ => _.Cell.Type == CellType.START).ToList ();
+	}
+
+	public void StartGame ()
+	{
+		for (int i = 0; i < StartUnitList.Count; i++) {
+			Unit u = StartUnitList [i];
+			GameObject go = u.GO [0];
+			Observable.Interval (TimeSpan.FromSeconds (1)).Subscribe (_ => {
+				GameObject real = Instantiate<GameObject> (go);
+				real.SetActive (true);
+				Rigidbody2D r2d = real.GetComponent<Rigidbody2D> ();
+				r2d.AddForce (u.Cell.Detail.Direction * 100f);
+			}).AddTo (go);
+		}
+	}
+
+	public void StopGame ()
+	{
+
+	}
+
+	List<Unit> StartUnitList;
+
+
+	void OnGUI ()
+	{
+		if (GUILayout.Button ("START")) {
+			StartGame ();
+		}
 	}
 }

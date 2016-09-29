@@ -17,4 +17,13 @@ public class Cell
 	[JsonProperty ("t")]
 	public CellType Type;
 
+	[JsonProperty ("d")]
+	public CellDetail Detail;
+}
+
+public class CellDetail
+{
+	[JsonProperty ("d")]
+	[JsonConverter (typeof(JsonVector2Conv))]
+	public Vector2 Direction;
 }

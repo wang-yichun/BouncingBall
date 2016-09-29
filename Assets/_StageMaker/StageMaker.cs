@@ -39,55 +39,96 @@ public class StageMaker : EditorWindow
 		return null;
 	}
 
+	public Unit lastUnit;
+	public bool StartCellChooseMode = false;
+
 	private void SceneGUI (SceneView sceneView)
 	{
 		if (editEnable) {
 			Selection.activeGameObject = Stage.gameObject;
 
 			if (Event.current.type == EventType.MouseDown && Event.current.button == 0) {
-				if (Event.current.control) {
-					// Ctrl + 左键
-					Unit u = GetMousePositionUnit ();
-					if (u != null) {
-						if (CellType.None != u.Cell.Type) {
-							u.ChangeCellTo (new Cell (){ Type = CellType.None });
-							OnStageEdited ();
-						}
+
+				if (StartCellChooseMode) {
+					StartCellChooseMode = false;
+					Stage.start_cell_choose_mode = false;
+
+					mousePositionRay = HandleUtility.GUIPointToWorldRay (Event.current.mousePosition);
+					if (Physics.Raycast (mousePositionRay, out hit, float.MaxValue, 1 << LayerMask.NameToLayer ("raycast_collider"))) {
+						Vector2 direction = ((Vector2)hit.point - lastUnit.Rect.center);
+						lastUnit.Cell.Detail.Direction = direction;
+						OnStageEdited ();
 					}
+
 				} else {
-					// 左键
-					Unit u = GetMousePositionUnit ();
-					if (u != null) {
-						if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
-							u.ChangeCellTo (new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] });
-							OnStageEdited ();
+					if (Event.current.control) {
+						// Ctrl + 左键
+						Unit u = GetMousePositionUnit ();
+						if (u != null) {
+							if (CellType.None != u.Cell.Type) {
+								u.ChangeCellTo (new Cell (){ Type = CellType.None });
+								OnStageEdited ();
+							}
+						}
+					} else {
+						// 左键
+						Unit u = GetMousePositionUnit ();
+						if (u != null) {
+							if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
+
+								Cell cell = new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] };
+								if (cell.Type == CellType.START) {
+									cell.Detail = new CellDetail ();
+								}
+
+								u.ChangeCellTo (cell);
+								OnStageEdited ();
+							}
 						}
 					}
 				}
 			}
 
 			if (Event.current.type == EventType.MouseDown && Event.current.button == 1) {
+				Unit u = GetMousePositionUnit ();
+				lastUnit = u;
+				StartCellChooseMode = false;
+				Stage.start_cell_choose_mode = false;
+
 				// 右键
-//				Unit u = GetMousePositionUnit ();
-//				if (u.Cell.Type != CellType.None) {
-//					u.ChangeCellTo (new Cell (){ Type = CellType.None });
-//				}
 				PopupWindow.Show (
 					new Rect (Event.current.mousePosition.x, Event.current.mousePosition.y, 0f, 0f), 
 					new StageMakerPopupWindow () {
 						stage = Stage,
-						unit = GetMousePositionUnit ()
+						unit = GetMousePositionUnit (),
+						stageMaker = this
 					}
 				);
 			}
 
 			if (Event.current.type == EventType.MouseMove || Event.current.type == EventType.MouseDrag) {
-				Unit u = GetMousePositionUnit ();
-				if (Stage.SMFocusUnit != u) {
-					Stage.SMFocusUnit = u;
-					SceneView.RepaintAll ();
-				} else if (u == null) {
-					Stage.SMFocusUnit = null;
+
+				if (StartCellChooseMode) {
+					mousePositionRay = HandleUtility.GUIPointToWorldRay (Event.current.mousePosition);
+					if (Physics.Raycast (mousePositionRay, out hit, float.MaxValue, 1 << LayerMask.NameToLayer ("raycast_collider"))) {
+						Stage.gizmo_current_point = hit.point;
+						SceneView.RepaintAll ();
+					}
+
+					if (Stage.SMFocusUnit != lastUnit) {
+						Stage.SMFocusUnit = lastUnit;
+						SceneView.RepaintAll ();
+					} else if (lastUnit == null) {
+						Stage.SMFocusUnit = null;
+					}
+				} else {
+					Unit u = GetMousePositionUnit ();
+					if (Stage.SMFocusUnit != u) {
+						Stage.SMFocusUnit = u;
+						SceneView.RepaintAll ();
+					} else if (u == null) {
+						Stage.SMFocusUnit = null;
+					}
 				}
 			}
 		}
@@ -140,7 +181,7 @@ public class StageMaker : EditorWindow
 		}
 
 		if (Stage == null) {
-			EditorGUILayout.HelpBox ("没有连接到 Hierarchy 中的 Stage", MessageType.Error);
+			EditorGUILayout.HelpBox ("没有连接到 Hierarchy 中的 Stage", MessageType.Warning);
 		}
 
 
@@ -210,7 +251,7 @@ public class StageMaker : EditorWindow
 
 	public string stageNum2FileNameWithSuffix (int stage_num)
 	{
-		return string.Format ("stage_{0:000}.byte", stage_num);
+		return string.Format ("stage_{0:000}.txt", stage_num);
 	}
 
 	public string StageDataRoot {
@@ -252,6 +293,7 @@ public class StageMaker : EditorWindow
 		if (Stage != null) {
 			try {
 				string data = File.ReadAllText (StageDataFullPath);
+				PRDebug.TagLog (tag, tagC, data);
 				Stage.Deser (data);
 				PRDebug.TagLog (tag, tagC, "Load from file: " + StageDataFullPath);
 			} catch (FileNotFoundException ex) {

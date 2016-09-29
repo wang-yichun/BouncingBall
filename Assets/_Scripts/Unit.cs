@@ -33,7 +33,7 @@ public class Unit : ISer
 
 	public string Ser ()
 	{
-		return JsonConvert.SerializeObject (this);
+		return JsonConvert.SerializeObject (this, Formatting.None, new JsonSerializerSettings{ NullValueHandling = NullValueHandling.Ignore });
 	}
 
 	public void Deser (string json)
@@ -42,6 +42,7 @@ public class Unit : ISer
 		X = u.X;
 		Y = u.Y;
 		Cell = u.Cell;
+
 		GO = new List<GameObject> ();
 		Stage = null;
 	}
