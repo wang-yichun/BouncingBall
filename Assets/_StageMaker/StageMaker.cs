@@ -214,7 +214,8 @@ public class StageMaker : EditorWindow
 	{
 		if (Stage != null) {
 			string data = File.ReadAllText (StageDataFullPath);
-
+			Stage.Deser (data);
+			PRDebug.TagLog (tag, tagC, "Load from file: " + StageDataFullPath);
 		}
 	}
 

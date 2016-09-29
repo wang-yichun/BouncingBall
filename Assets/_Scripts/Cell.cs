@@ -16,4 +16,5 @@ public class Cell
 {
 	[JsonProperty ("t")]
 	public CellType Type;
+
 }

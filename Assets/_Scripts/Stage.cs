@@ -228,7 +228,22 @@ public class Stage : MonoBehaviour, ISer
 
 	public void Deser (string json)
 	{
-		throw new NotImplementedException ();
+		Stage s = CreateByJSON (json);
+		UnitRect = s.UnitRect;
+		UnitCountX = s.UnitCountX;
+		UnitCountY = s.UnitCountY;
+
+		Initialize ();
+
+		for (int i = 0; i < s.preSerUnits.Count; i++) {
+			Unit u = s.preSerUnits [i];
+			Units [u.Idx].ChangeCellTo (u.Cell);
+		}
+	}
+
+	public static Stage CreateByJSON (string json)
+	{
+		return JsonConvert.DeserializeObject<Stage> (json);
 	}
 
 	#endregion
