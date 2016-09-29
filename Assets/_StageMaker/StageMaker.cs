@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using PogoTools;
+using System.IO;
 
 //[InitializeOnLoad]
 //public static class StageMakerStartup
@@ -178,15 +179,43 @@ public class StageMaker : EditorWindow
 		return string.Format ("stage_{0:000}", stage_num);
 	}
 
+	public string stageNum2FileNameWithSuffix (int stage_num)
+	{
+		return string.Format ("stage_{0:000}.byte", stage_num);
+	}
+
+	public string StageDataRoot {
+		get {
+			string root = Path.Combine (Application.dataPath, "Resources/StageDatas");
+			if (Directory.Exists (root) == false) {
+				Directory.CreateDirectory (root);
+			}
+			return root;
+		}
+	}
+
+	public string StageDataFullPath {
+		get {
+			return Path.Combine (StageDataRoot, stageNum2FileNameWithSuffix (choosed_stage_num));
+		}
+	}
+
 	public void SaveToFile ()
 	{
 		if (Stage != null) {
-			PRDebug.TagLog (tag, tagC, Stage.Ser ());
+			string data = Stage.Ser ();
+			PRDebug.TagLog (tag, tagC, data);
+			File.WriteAllText (StageDataFullPath, data);
+			PRDebug.TagLog (tag, tagC, "Save to file: " + StageDataFullPath);
 		}
 	}
 
 	public void LoadFromFile ()
 	{
+		if (Stage != null) {
+			string data = File.ReadAllText (StageDataFullPath);
+
+		}
 	}
 
 	public int choosed_stage_num = 0;

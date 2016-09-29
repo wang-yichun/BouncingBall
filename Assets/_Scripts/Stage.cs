@@ -71,6 +71,8 @@ public class Stage : MonoBehaviour, ISer
 
 		BrickContainer = transform.FindChild ("BrickContainer");
 
+		CleanBrickContainer ();
+
 		UnitCount = UnitCountX * UnitCountY;
 		TotalRect = new Rect (0f, 0f, UnitRect.width * UnitCountX, UnitRect.height * UnitCountY);
 		TotalRect.x = -TotalRect.width / 2f;
@@ -97,6 +99,13 @@ public class Stage : MonoBehaviour, ISer
 					GO = new List<GameObject> ()
 				};
 			}
+		}
+	}
+
+	public void CleanBrickContainer ()
+	{
+		while (BrickContainer.childCount > 0) {
+			DestroyImmediate (BrickContainer.GetChild (0).gameObject);	
 		}
 	}
 
