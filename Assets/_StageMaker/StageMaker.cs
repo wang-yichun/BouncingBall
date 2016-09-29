@@ -15,7 +15,9 @@ using PogoTools;
 
 public class StageMaker : EditorWindow
 {
-	
+	public static readonly string tag = "Stage Maker";
+	public static readonly Color tagC = new Color (1f, .68f, 0f);
+
 	[MenuItem ("BB/StageMaker... &`")]
 	public static void Init ()
 	{
@@ -50,11 +52,6 @@ public class StageMaker : EditorWindow
 						u.ChangeCellTo (new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] });
 					}
 				}
-
-				PRDebug.TagLog ("Ethan Debug", Color.cyan, "EventType.MouseDown");
-
-//				PRDebug.Log ("EventType.MouseDown", Color.yellow);
-//				PRDebug.Log ("Close Color", null);
 			}
 
 			if (Event.current.type == EventType.MouseDown && Event.current.button == 1) {
@@ -110,6 +107,7 @@ public class StageMaker : EditorWindow
 	{
 		SceneView.onSceneGUIDelegate -= SceneGUI;
 		Stage.SMFocusUnit = null;
+		Stage = null;
 	}
 
 	void OnGUI ()
@@ -126,24 +124,71 @@ public class StageMaker : EditorWindow
 			}
 		}
 
+		if (Stage == null) {
+			EditorGUILayout.HelpBox ("没有连接到 Hierarchy 中的 Stage", MessageType.Error);
+		}
+
+
 		tbh_gird_mode_idx = GUILayout.Toolbar (tbh_gird_mode_idx, tbh_gird_mode);
 
 		EditorGUILayout.EndToggleGroup ();
 
 		GUILayout.Space (20f);
 
-		if (GUILayout.Button ("保存")) {
-			string path = EditorUtility.SaveFilePanelInProject ("保存文件", "level_001", "byte", "将关卡文件保存");
-//			Debug.Log ("Path: " + path);
-//			Debug.Log (Stage.Ser ());
-			PRDebug.Log (Stage.Ser ());
+		GUILayout.BeginHorizontal ();
+		if (GUILayout.Button ("|<")) {
+			choosed_stage_num = 1;
 		}
+		if (GUILayout.Button ("<")) {
+			if (choosed_stage_num > 1)
+				choosed_stage_num--;
+		}
+		choosed_stage_num = EditorGUILayout.DelayedIntField (choosed_stage_num, GUILayout.MaxWidth (80));
+		if (GUILayout.Button (">")) {
+			if (choosed_stage_num < 100)
+				choosed_stage_num++;
+		}
+		if (GUILayout.Button (">|")) {
+			choosed_stage_num = max_stage_num;
+		}
+		GUILayout.EndHorizontal ();
 
-		if (GUILayout.Button ("读取")) {
-			string path = EditorUtility.OpenFilePanel ("加载文件", Application.dataPath, "byte");
-			Debug.Log ("Path: " + path);
-		}
+		GUILayout.BeginHorizontal ();
+
+		if (GUILayout.Button ("Load"))
+			LoadFromFile ();
+		if (GUILayout.Button ("Save"))
+			SaveToFile ();
+
+		GUILayout.EndHorizontal ();
+
+
+		GUILayout.Space (20f);
+		GUILayout.BeginHorizontal ();
+		EditorGUILayout.PrefixLabel ("关卡文件");
+		EditorGUILayout.SelectableLabel (stageNum2FileName (choosed_stage_num));
+		GUILayout.EndHorizontal ();
+
 
 		GUILayout.EndVertical ();
 	}
+
+	public string stageNum2FileName (int stage_num)
+	{
+		return string.Format ("stage_{0:000}", stage_num);
+	}
+
+	public void SaveToFile ()
+	{
+		if (Stage != null) {
+			PRDebug.TagLog (tag, tagC, Stage.Ser ());
+		}
+	}
+
+	public void LoadFromFile ()
+	{
+	}
+
+	public int choosed_stage_num = 0;
+	public int max_stage_num = 100;
 }

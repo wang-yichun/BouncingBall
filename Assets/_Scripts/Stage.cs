@@ -214,7 +214,7 @@ public class Stage : MonoBehaviour, ISer
 				preSerUnits.Add (u);
 			}
 		}
-		return JsonConvert.SerializeObject (this, Formatting.Indented);
+		return JsonConvert.SerializeObject (this, Formatting.Indented, new JsonUnitConv ());
 	}
 
 	public void Deser (string json)
