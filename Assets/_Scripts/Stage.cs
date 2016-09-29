@@ -184,7 +184,9 @@ public class Stage : MonoBehaviour, ISer
 			if (oldCell != newCell) {
 				List<GameObject> gos = unit.GO.FindAll (_ => _.name == MakePrefabName (oldCell.Type));
 				for (int i = 0; i < gos.Count; i++) {
-					DestroyImmediate (gos [i]);
+					GameObject go = gos [i];
+					unit.GO.Remove (go);
+					DestroyImmediate (go);
 				}
 
 				if (newCell.Type != CellType.None) {
@@ -195,12 +197,27 @@ public class Stage : MonoBehaviour, ISer
 
 		if (need_add) {
 			int prefab_idx = -1;
-			if (newCell.Type == CellType.BRICK) {
+			switch (newCell.Type) {
+			case CellType.None:
+				break;
+			case CellType.START:
+				prefab_idx = 0;
+				break;
+			case CellType.BRICK:
 				prefab_idx = 1;
+				break;
+			case CellType.STAR:
+				prefab_idx = 2;
+				break;
+			case CellType.FINISH:
+				prefab_idx = 3;
+				break;
+			default:
+				throw new ArgumentOutOfRangeException ();
 			}
 
 			if (prefab_idx != -1) {
-				GameObject go = Instantiate<GameObject> (UnitPrefab [1]);
+				GameObject go = Instantiate<GameObject> (UnitPrefab [prefab_idx]);
 				unit.GO.Add (go);
 				go.transform.SetParent (BrickContainer);
 				go.transform.position = unit.Rect.center;
@@ -219,7 +236,7 @@ public class Stage : MonoBehaviour, ISer
 		preSerUnits = new List<Unit> ();
 		for (int i = 0; i < Units.Length; i++) {
 			Unit u = Units [i];
-			if (u.Cell.Type == CellType.BRICK) {
+			if (u.Cell.Type != CellType.None) {
 				preSerUnits.Add (u);
 			}
 		}

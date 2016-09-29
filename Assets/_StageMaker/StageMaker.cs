@@ -45,12 +45,23 @@ public class StageMaker : EditorWindow
 			Selection.activeGameObject = Stage.gameObject;
 
 			if (Event.current.type == EventType.MouseDown && Event.current.button == 0) {
-				// 左键
-				Unit u = GetMousePositionUnit ();
-				if (u != null) {
-					if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
-						u.ChangeCellTo (new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] });
-						OnStageEdited ();
+				if (Event.current.control) {
+					// Ctrl + 左键
+					Unit u = GetMousePositionUnit ();
+					if (u != null) {
+						if (CellType.None != u.Cell.Type) {
+							u.ChangeCellTo (new Cell (){ Type = CellType.None });
+							OnStageEdited ();
+						}
+					}
+				} else {
+					// 左键
+					Unit u = GetMousePositionUnit ();
+					if (u != null) {
+						if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
+							u.ChangeCellTo (new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] });
+							OnStageEdited ();
+						}
 					}
 				}
 			}

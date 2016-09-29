@@ -16,10 +16,13 @@ public class StageMakerPopupWindow : PopupWindowContent
 
 	public override void OnGUI (Rect rect)
 	{
-		GUILayout.Label (string.Format ("Unit: ({0},{1}), idx:{2}", unit.X, unit.Y, unit.Idx), EditorStyles.boldLabel);
-		if (GUILayout.Button ("To JSON")) {
-			Debug.Log (JsonConvert.SerializeObject (unit));
+		if (unit != null) {
+			GUILayout.Label (string.Format ("Unit: ({0},{1}), idx:{2}", unit.X, unit.Y, unit.Idx), EditorStyles.boldLabel);
+			if (GUILayout.Button ("To JSON")) {
+				Debug.Log (JsonConvert.SerializeObject (unit));
+			}
 		}
+
 		GUILayout.FlexibleSpace ();
 		if (GUILayout.Button ("Close")) {
 			this.editorWindow.Close ();
