@@ -48,9 +48,9 @@ public class StageMaker : EditorWindow
 				// 左键
 				Unit u = GetMousePositionUnit ();
 				if (u != null) {
-
 					if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
 						u.ChangeCellTo (new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] });
+						OnStageEdited ();
 					}
 				}
 			}
@@ -102,6 +102,7 @@ public class StageMaker : EditorWindow
 		SceneView.onSceneGUIDelegate += SceneGUI;
 		Stage = GameObject.Find ("Stage").GetComponent<Stage> ();
 		BrickContainer = Stage.transform.FindChild ("BrickContainer").transform;
+		OnChoosedStageNumChanged ();
 	}
 
 	void CloseEdit ()
@@ -110,6 +111,8 @@ public class StageMaker : EditorWindow
 		Stage.SMFocusUnit = null;
 		Stage = null;
 	}
+
+	public int last_choosed_stage_num = 0;
 
 	void OnGUI ()
 	{
@@ -152,17 +155,32 @@ public class StageMaker : EditorWindow
 		if (GUILayout.Button (">|")) {
 			choosed_stage_num = max_stage_num;
 		}
+		if (last_choosed_stage_num != choosed_stage_num) {
+			OnChoosedStageNumChanged ();
+		}
+		last_choosed_stage_num = choosed_stage_num;
 		GUILayout.EndHorizontal ();
 
 		GUILayout.BeginHorizontal ();
-
 		if (GUILayout.Button ("Load"))
 			LoadFromFile ();
 		if (GUILayout.Button ("Save"))
 			SaveToFile ();
-
 		GUILayout.EndHorizontal ();
 
+		GUILayout.BeginHorizontal ();
+		bool temp_auto_load = GUILayout.Toggle (auto_load, "Auto Load");
+		if (temp_auto_load != auto_load) {
+			auto_load = temp_auto_load;
+			OnChoosedStageNumChanged ();
+		}
+		bool temp_auto_save = GUILayout.Toggle (auto_save, "Auto Save");
+		if (temp_auto_save != auto_save) {
+			auto_save = temp_auto_save;
+			OnStageEdited ();
+		}
+
+		GUILayout.EndHorizontal ();
 
 		GUILayout.Space (20f);
 		GUILayout.BeginHorizontal ();
@@ -200,25 +218,56 @@ public class StageMaker : EditorWindow
 		}
 	}
 
-	public void SaveToFile ()
+	public string ZeroStageDataFullPath {
+		get {
+			return Path.Combine (StageDataRoot, stageNum2FileNameWithSuffix (0));
+		}
+	}
+
+	public void SaveToFile (bool log = true)
 	{
 		if (Stage != null) {
 			string data = Stage.Ser ();
 			PRDebug.TagLog (tag, tagC, data);
 			File.WriteAllText (StageDataFullPath, data);
-			PRDebug.TagLog (tag, tagC, "Save to file: " + StageDataFullPath);
+			if (log)
+				PRDebug.TagLog (tag, tagC, "Save to file: " + StageDataFullPath);
+			AssetDatabase.Refresh ();
 		}
 	}
 
 	public void LoadFromFile ()
 	{
 		if (Stage != null) {
-			string data = File.ReadAllText (StageDataFullPath);
-			Stage.Deser (data);
-			PRDebug.TagLog (tag, tagC, "Load from file: " + StageDataFullPath);
+			try {
+				string data = File.ReadAllText (StageDataFullPath);
+				Stage.Deser (data);
+				PRDebug.TagLog (tag, tagC, "Load from file: " + StageDataFullPath);
+			} catch (FileNotFoundException ex) {
+				string data = File.ReadAllText (ZeroStageDataFullPath);
+				Stage.Deser (data);
+				PRDebug.TagLog (tag, tagC, "Do not have " + stageNum2FileNameWithSuffix (choosed_stage_num) + ".");
+			}
 		}
 	}
 
 	public int choosed_stage_num = 0;
 	public int max_stage_num = 100;
+
+	public bool auto_load = false;
+	public bool auto_save = false;
+
+	public void OnChoosedStageNumChanged ()
+	{
+		if (auto_load) {
+			LoadFromFile ();
+		}
+	}
+
+	public void OnStageEdited ()
+	{
+		if (auto_save) {
+			SaveToFile (false);
+		}
+	}
 }
