@@ -49,40 +49,44 @@ public class StageMaker : EditorWindow
 
 			if (Event.current.type == EventType.MouseDown && Event.current.button == 0) {
 
-				if (StartCellChooseMode) {
-					StartCellChooseMode = false;
-					Stage.start_cell_choose_mode = false;
-
-					mousePositionRay = HandleUtility.GUIPointToWorldRay (Event.current.mousePosition);
-					if (Physics.Raycast (mousePositionRay, out hit, float.MaxValue, 1 << LayerMask.NameToLayer ("raycast_collider"))) {
-						Vector2 direction = ((Vector2)hit.point - lastUnit.Rect.center);
-						lastUnit.Cell.Detail.Direction = direction;
-						OnStageEdited ();
-					}
-
+				if (Event.current.alt) {
 				} else {
-					if (Event.current.control) {
-						// Ctrl + 左键
-						Unit u = GetMousePositionUnit ();
-						if (u != null) {
-							if (CellType.None != u.Cell.Type) {
-								u.ChangeCellTo (new Cell (){ Type = CellType.None });
-								OnStageEdited ();
-							}
+					if (StartCellChooseMode) {
+						StartCellChooseMode = false;
+						Stage.start_cell_choose_mode = false;
+
+						mousePositionRay = HandleUtility.GUIPointToWorldRay (Event.current.mousePosition);
+						if (Physics.Raycast (mousePositionRay, out hit, float.MaxValue, 1 << LayerMask.NameToLayer ("raycast_collider"))) {
+							Vector2 direction = ((Vector2)hit.point - lastUnit.Rect.center);
+							lastUnit.Cell.Detail.Direction = direction;
+							OnStageEdited ();
 						}
+
 					} else {
-						// 左键
-						Unit u = GetMousePositionUnit ();
-						if (u != null) {
-							if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
-
-								Cell cell = new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] };
-								if (cell.Type == CellType.START) {
-									cell.Detail = new CellDetail ();
+						if (Event.current.control) {
+							// Ctrl + 左键
+							Unit u = GetMousePositionUnit ();
+							if (u != null) {
+								if (CellType.None != u.Cell.Type) {
+									u.ChangeCellTo (new Cell (){ Type = CellType.None });
+									OnStageEdited ();
 								}
+							}
+						} else {
+							// 左键
+							Unit u = GetMousePositionUnit ();
+							if (u != null) {
+								if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
 
-								u.ChangeCellTo (cell);
-								OnStageEdited ();
+									Cell cell = new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] };
+									if (cell.Type == CellType.START ||
+									    cell.Type == CellType.FINISH) {
+										cell.Detail = new CellDetail ();
+									}
+
+									u.ChangeCellTo (cell);
+									OnStageEdited ();
+								}
 							}
 						}
 					}
@@ -136,13 +140,14 @@ public class StageMaker : EditorWindow
 
 	public bool editEnable = false;
 
-	private static string[] tbh_gird_mode = new string[] { "空", "球", "地形方块", "星星", "终点" };
+	private static string[] tbh_gird_mode = new string[] { "空", "起点", "方块", "星星", "宝石", "漩涡" };
 	public int tbh_gird_mode_idx;
 	public CellType[] tbh_cell_type = new CellType[] {
 		CellType.None,
 		CellType.START,
 		CellType.BRICK,
 		CellType.STAR,
+		CellType.GEM,
 		CellType.FINISH
 	};
 

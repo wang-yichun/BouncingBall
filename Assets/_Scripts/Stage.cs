@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using PogoTools;
 using System.Linq;
 using UniRx;
+using HedgehogTeam.EasyTouch;
 
 [JsonObject (MemberSerialization.OptIn)]
 public class Stage : MonoBehaviour, ISer
@@ -34,6 +35,9 @@ public class Stage : MonoBehaviour, ISer
 
 	[HideInInspector]
 	public Transform BrickContainer;
+
+	[HideInInspector]
+	public Transform DynamicContainer;
 
 	public Unit SMFocusUnit;
 
@@ -73,8 +77,10 @@ public class Stage : MonoBehaviour, ISer
 		NeedInitialize = false;
 
 		BrickContainer = transform.FindChild ("BrickContainer");
+		DynamicContainer = transform.FindChild ("DynamicContainer");
 
 		CleanBrickContainer ();
+		CleanDynamicContainer ();
 
 		UnitCount = UnitCountX * UnitCountY;
 		TotalRect = new Rect (0f, 0f, UnitRect.width * UnitCountX, UnitRect.height * UnitCountY);
@@ -109,6 +115,13 @@ public class Stage : MonoBehaviour, ISer
 	{
 		while (BrickContainer.childCount > 0) {
 			DestroyImmediate (BrickContainer.GetChild (0).gameObject);	
+		}
+	}
+
+	public void CleanDynamicContainer ()
+	{
+		while (DynamicContainer.childCount > 0) {
+			DestroyImmediate (DynamicContainer.GetChild (0).gameObject);	
 		}
 	}
 
@@ -226,8 +239,11 @@ public class Stage : MonoBehaviour, ISer
 			case CellType.STAR:
 				prefab_idx = 2;
 				break;
-			case CellType.FINISH:
+			case CellType.GEM:
 				prefab_idx = 3;
+				break;
+			case CellType.FINISH:
+				prefab_idx = 4;
 				break;
 			default:
 				throw new ArgumentOutOfRangeException ();
@@ -239,7 +255,32 @@ public class Stage : MonoBehaviour, ISer
 				go.transform.SetParent (BrickContainer);
 				go.transform.position = unit.Rect.center;
 				go.name = MakePrefabName (newCell.Type);
+
+				if (go.CompareTag ("Vortex")) {
+					Vortex vortex = go.GetComponent<Vortex> ();
+					vortex.NeedCount = newCell.Detail.VortexNeedCount;
+					vortex.CurrentCount = 0;
+				}
 			}
+		}
+	}
+
+	public void OnStarCollected (Star star)
+	{
+		collected_star_count++;
+	}
+
+	public void OnEnterVortex (Vortex vortex)
+	{
+		enter_vortex_count++;
+	}
+
+	public void OnVortexFull (Vortex vortex)
+	{
+		full_vortex_count++;
+
+		if (full_vortex_count == VortexNeedFull) {
+			OnGameWin ();
 		}
 	}
 
@@ -285,10 +326,21 @@ public class Stage : MonoBehaviour, ISer
 	// Use this for initialization
 	void Start ()
 	{
+		current = GameObject.FindGameObjectWithTag ("Stage").GetComponent<Stage> ();
 		LoadStage ();
 	}
 
 	public int stage_num;
+	public bool need_reload;
+
+
+	private static Stage current;
+
+	public static Stage Current {
+		get {
+			return current;
+		}
+	}
 
 	public void LoadStage ()
 	{
@@ -303,15 +355,36 @@ public class Stage : MonoBehaviour, ISer
 		}
 
 		StartUnitList = Units.Where (_ => _.Cell.Type == CellType.START).ToList ();
+
+		VortexNeedFull = Units.Where (_ => _.Cell.Type == CellType.FINISH).Count ();
+
+		need_reload = false;
 	}
+
+
+	public int collected_star_count;
+	public int enter_vortex_count;
+	public int full_vortex_count;
 
 	public void StartGame ()
 	{
+		if (need_reload) {
+			LoadStage ();
+		}
+		need_reload = true;
+
+		collected_star_count = 0;
+		enter_vortex_count = 0;
+		full_vortex_count = 0;
+
+		EasyTouchSubscribe ();
 		for (int i = 0; i < StartUnitList.Count; i++) {
 			Unit u = StartUnitList [i];
 			GameObject go = u.GO [0];
+
 			Observable.Interval (TimeSpan.FromSeconds (1)).Subscribe (_ => {
 				GameObject real = Instantiate<GameObject> (go);
+				real.transform.SetParent (DynamicContainer);
 				real.SetActive (true);
 				Rigidbody2D r2d = real.GetComponent<Rigidbody2D> ();
 				r2d.AddForce (u.Cell.Detail.Direction * 100f);
@@ -321,16 +394,90 @@ public class Stage : MonoBehaviour, ISer
 
 	public void StopGame ()
 	{
+		EasyTouchUnsubscribe ();
 
+		TextAsset ta = Resources.Load<TextAsset> (string.Format ("StageDatas/stage_{0:000}", 0));
+		this.Deser (ta.text);
+	}
+
+	public void OnGameWin ()
+	{
+		PRDebug.TagLog ("Stage", Color.cyan, "OnGameWin()");
+	}
+
+	void EasyTouchSubscribe ()
+	{
+		EasyTouch.On_TouchStart += EasyTouch_On_TouchStart;
+		EasyTouch.On_TouchDown += EasyTouch_On_TouchDown;
+		EasyTouch.On_TouchUp += EasyTouch_On_TouchUp;
+	}
+
+	void EasyTouchUnsubscribe ()
+	{
+		EasyTouch.On_TouchStart -= EasyTouch_On_TouchStart;
+		EasyTouch.On_TouchDown -= EasyTouch_On_TouchDown;
+		EasyTouch.On_TouchUp -= EasyTouch_On_TouchUp;
+	}
+
+	RaycastHit hit;
+
+	CellType fingerCellType;
+
+	void EasyTouch_On_TouchStart (Gesture gesture)
+	{
+		Ray r = Camera.main.ScreenPointToRay (gesture.position);
+		if (Physics.Raycast (r, out hit, float.MaxValue, 1 << LayerMask.NameToLayer ("raycast_collider"))) {
+			Unit u = this.world2unit ((Vector2)hit.point);
+			PRDebug.Log (u.Ser (), Color.yellow);
+
+			if (u != null) {
+				if (u.Cell.Type == CellType.BRICK) {
+					u.ChangeCellTo (new Cell (){ Type = CellType.None });
+					fingerCellType = CellType.None;
+				} else if (u.Cell.Type == CellType.None) {
+					u.ChangeCellTo (new Cell (){ Type = CellType.BRICK });
+					fingerCellType = CellType.BRICK;
+				}
+			}
+		}
+	}
+
+	void EasyTouch_On_TouchDown (Gesture gesture)
+	{
+		Ray r = Camera.main.ScreenPointToRay (gesture.position);
+		if (Physics.Raycast (r, out hit, float.MaxValue, 1 << LayerMask.NameToLayer ("raycast_collider"))) {
+			Unit u = this.world2unit ((Vector2)hit.point);
+			PRDebug.Log (u.Ser (), Color.yellow);
+
+			if (u != null) {
+				if (u.Cell.Type == CellType.BRICK && fingerCellType == CellType.None) {
+					u.ChangeCellTo (new Cell (){ Type = CellType.None });
+				} else if (u.Cell.Type == CellType.None && fingerCellType == CellType.BRICK) {
+					u.ChangeCellTo (new Cell (){ Type = CellType.BRICK });
+				}
+			}
+		}
+	}
+
+	void EasyTouch_On_TouchUp (Gesture gesture)
+	{
 	}
 
 	List<Unit> StartUnitList;
-
+	public int VortexNeedFull;
 
 	void OnGUI ()
 	{
 		if (GUILayout.Button ("START")) {
 			StartGame ();
 		}
+		if (GUILayout.Button ("STOP")) {
+			StopGame ();
+		}
+	}
+
+	void GameWinEffect ()
+	{
+		
 	}
 }

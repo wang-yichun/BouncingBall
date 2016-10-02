@@ -8,6 +8,7 @@ public enum CellType
 	START,
 	BRICK,
 	STAR,
+	GEM,
 	FINISH
 }
 
@@ -26,4 +27,7 @@ public class CellDetail
 	[JsonProperty ("d")]
 	[JsonConverter (typeof(JsonVector2Conv))]
 	public Vector2 Direction;
+
+	[JsonProperty("v")]
+	public int VortexNeedCount;
 }

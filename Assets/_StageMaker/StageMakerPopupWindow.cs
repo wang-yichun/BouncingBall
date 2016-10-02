@@ -31,6 +31,10 @@ public class StageMakerPopupWindow : PopupWindowContent
 					this.editorWindow.Close ();
 				}
 			}
+
+			if (unit.Cell.Type == CellType.FINISH) {
+				unit.Cell.Detail.VortexNeedCount = EditorGUILayout.DelayedIntField ("Need Count", unit.Cell.Detail.VortexNeedCount);
+			}
 		}
 
 		GUILayout.FlexibleSpace ();

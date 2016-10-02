@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: b14305a71276c4021a12e2cc5a83e501
-timeCreated: 1474857765
+timeCreated: 1475205672
 licenseType: Pro
 TextureImporter:
   fileIDToRecycleName:
@@ -8,6 +8,8 @@ TextureImporter:
     21300002: ingame_1
     21300004: ingame_2
     21300006: ingame_3
+    21300008: ingame_4
+    21300010: ingame_5
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -60,7 +62,7 @@ TextureImporter:
       name: ingame_0
       rect:
         serializedVersion: 2
-        x: 133
+        x: 25
         y: 44
         width: 40
         height: 40
@@ -73,7 +75,7 @@ TextureImporter:
       name: ingame_1
       rect:
         serializedVersion: 2
-        x: 196
+        x: 88
         y: 40
         width: 50
         height: 50
@@ -86,7 +88,7 @@ TextureImporter:
       name: ingame_2
       rect:
         serializedVersion: 2
-        x: 273
+        x: 165
         y: 40
         width: 51
         height: 48
@@ -99,7 +101,7 @@ TextureImporter:
       name: ingame_3
       rect:
         serializedVersion: 2
-        x: 332
+        x: 224
         y: 36
         width: 58
         height: 53
@@ -108,8 +110,34 @@ TextureImporter:
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
+    - serializedVersion: 2
+      name: ingame_4
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 28
+        width: 73
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: ingame_5
+      rect:
+        serializedVersion: 2
+        x: 372
+        y: 43
+        width: 46
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
     outline: []
-  spritePackingTag: 
+  spritePackingTag: in_game
   userData: 
   assetBundleName: 
   assetBundleVariant: 
