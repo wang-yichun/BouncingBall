@@ -185,7 +185,7 @@ public class Stage : MonoBehaviour, ISer
 			name = "";
 			break;
 		case CellType.START:
-			name = "ingame_" + 0;
+			name = "ingame_spray";
 			break;
 		case CellType.BRICK:
 			name = "ingame_" + 1;
@@ -194,7 +194,10 @@ public class Stage : MonoBehaviour, ISer
 			name = "ingame_" + 2;
 			break;
 		case CellType.FINISH:
-			name = "ingame_" + 3;
+			name = "ingame_vortex";
+			break;
+		case CellType.BALL:
+			name = "ingame_0";
 			break;
 		default:
 			name = "";
@@ -260,6 +263,11 @@ public class Stage : MonoBehaviour, ISer
 					Vortex vortex = go.GetComponent<Vortex> ();
 					vortex.NeedCount = newCell.Detail.VortexNeedCount;
 					vortex.CurrentCount = 0;
+				}
+
+				if (go.CompareTag ("Spray")) {
+					Spray spray = go.GetComponent<Spray> ();
+					spray.SetDirection (newCell.Detail.Direction);
 				}
 			}
 		}
@@ -380,14 +388,21 @@ public class Stage : MonoBehaviour, ISer
 		EasyTouchSubscribe ();
 		for (int i = 0; i < StartUnitList.Count; i++) {
 			Unit u = StartUnitList [i];
-			GameObject go = u.GO [0];
+
+			// idx:5, Ball
+			GameObject go = UnitPrefab [5];
 
 			Observable.Interval (TimeSpan.FromSeconds (1)).Subscribe (_ => {
 				GameObject real = Instantiate<GameObject> (go);
 				real.transform.SetParent (DynamicContainer);
+				real.transform.position = u.Rect.center;
 				real.SetActive (true);
 				Rigidbody2D r2d = real.GetComponent<Rigidbody2D> ();
 				r2d.AddForce (u.Cell.Detail.Direction * 100f);
+
+				Spray spray = u.GO [0].GetComponent<Spray> ();
+				spray.OnSpray ();
+
 			}).AddTo (go);
 		}
 	}

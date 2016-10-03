@@ -9,7 +9,8 @@ public enum CellType
 	BRICK,
 	STAR,
 	GEM,
-	FINISH
+	FINISH,
+	BALL
 }
 
 [JsonObject (MemberSerialization.OptIn)]

@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: b14305a71276c4021a12e2cc5a83e501
-timeCreated: 1475205672
+timeCreated: 1475402369
 licenseType: Pro
 TextureImporter:
   fileIDToRecycleName:
@@ -10,10 +10,21 @@ TextureImporter:
     21300006: ingame_3
     21300008: ingame_4
     21300010: ingame_5
+    21300012: ingame_6
+    21300014: ingame_7
+    21300016: ingame_8
+    21300018: ingame_9
+    21300020: ingame_10
+    21300022: ingame_11
+    21300024: ingame_12
+    21300026: ingame_13
+    21300028: ingame_14
+    21300030: ingame_15
+    21300032: ingame_16
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
-    enableMipMap: 1
+    enableMipMap: 0
     linearTexture: 0
     correctGamma: 0
     fadeOut: 0
@@ -32,7 +43,7 @@ TextureImporter:
   cubemapConvolutionSteps: 7
   cubemapConvolutionExponent: 1.5
   seamlessCubemap: 0
-  textureFormat: -1
+  textureFormat: -3
   maxTextureSize: 2048
   textureSettings:
     filterMode: -1
@@ -67,7 +78,7 @@ TextureImporter:
         width: 40
         height: 40
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
@@ -80,7 +91,7 @@ TextureImporter:
         width: 50
         height: 50
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
@@ -93,7 +104,7 @@ TextureImporter:
         width: 51
         height: 48
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
@@ -102,11 +113,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 224
-        y: 36
+        y: 38
         width: 58
-        height: 53
+        height: 51
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
@@ -114,12 +125,12 @@ TextureImporter:
       name: ingame_4
       rect:
         serializedVersion: 2
-        x: 291
+        x: 290
         y: 28
-        width: 73
+        width: 74
         height: 72
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
@@ -128,11 +139,37 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 372
-        y: 43
-        width: 46
-        height: 43
+        y: 42
+        width: 47
+        height: 45
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: ingame_6
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 44
+        width: 40
+        height: 53
+      alignment: 9
+      pivot: {x: 0.5, y: 0.38}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: ingame_7
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 39
+        width: 50
+        height: 50
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
