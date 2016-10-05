@@ -226,9 +226,13 @@ public class Stage : MonoBehaviour, ISer
 
 					if (remove_anim_on) {
 						Rigidbody2D r = go.GetComponentInChildren<Rigidbody2D> ();
-						r.isKinematic = true;
+						if (r != null) {
+							r.isKinematic = true;
+						}
 						Collider2D c = go.GetComponentInChildren<Collider2D> ();
-						c.isTrigger = true;
+						if (c != null) {
+							c.isTrigger = true;
+						}
 
 						Vector2 offset = new Vector2 (
 							                 UnityEngine.Random.Range (-.5f, .5f),
@@ -405,6 +409,8 @@ public class Stage : MonoBehaviour, ISer
 
 	private float begin_anim_time;
 
+	public bool is_win;
+
 
 	private static Stage current;
 
@@ -417,6 +423,7 @@ public class Stage : MonoBehaviour, ISer
 	public void LoadStage ()
 	{
 		begin_anim_on = true;
+		is_win = false;
 
 		if (spray_disp_0 != null) {
 			spray_disp_0.Dispose ();
@@ -514,6 +521,14 @@ public class Stage : MonoBehaviour, ISer
 	public void OnGameWin ()
 	{
 		PRDebug.TagLog ("Stage", Color.cyan, "OnGameWin()");
+		if (spray_disp_0 != null) {
+			spray_disp_0.Dispose ();
+		}
+		if (spray_disp_1 != null) {
+			spray_disp_1.Dispose ();
+		}
+		AnimClearStage ();
+		is_win = true;
 	}
 
 	void EasyTouchSubscribe ()
@@ -548,6 +563,10 @@ public class Stage : MonoBehaviour, ISer
 				} else if (u.Cell.Type == CellType.None) {
 					u.ChangeCellTo (new Cell (){ Type = CellType.BRICK });
 					fingerCellType = CellType.BRICK;
+
+					if (is_win) {
+						u.ChangeCellTo (new Cell (){ Type = CellType.None });
+					}
 				}
 			}
 		}
@@ -565,6 +584,10 @@ public class Stage : MonoBehaviour, ISer
 					u.ChangeCellTo (new Cell (){ Type = CellType.None });
 				} else if (u.Cell.Type == CellType.None && fingerCellType == CellType.BRICK) {
 					u.ChangeCellTo (new Cell (){ Type = CellType.BRICK });
+
+					if (is_win) {
+						u.ChangeCellTo (new Cell (){ Type = CellType.None });
+					}
 				}
 			}
 		}
@@ -588,8 +611,11 @@ public class Stage : MonoBehaviour, ISer
 		}
 	}
 
-	void GameWinEffect ()
+	void AnimClearStage ()
 	{
-		
+		for (int i = 0; i < Units.Length; i++) {
+			Unit u = Units [i];
+			u.ChangeCellTo (new Cell (){ Type = CellType.None });
+		}
 	}
 }
