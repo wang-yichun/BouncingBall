@@ -223,8 +223,33 @@ public class Stage : MonoBehaviour, ISer
 				List<GameObject> gos = unit.GO.FindAll (_ => _.name == MakePrefabName (oldCell.Type));
 				for (int i = 0; i < gos.Count; i++) {
 					GameObject go = gos [i];
-					unit.GO.Remove (go);
-					DestroyImmediate (go);
+
+					if (remove_anim_on) {
+						Rigidbody2D r = go.GetComponentInChildren<Rigidbody2D> ();
+						r.isKinematic = true;
+						Collider2D c = go.GetComponentInChildren<Collider2D> ();
+						c.isTrigger = true;
+
+						Vector2 offset = new Vector2 (
+							                 UnityEngine.Random.Range (-.5f, .5f),
+							                 UnityEngine.Random.Range (-1f, -.5f)
+						                 );
+							
+						go.transform.DOLocalJump (unit.Rect.center + offset, .5f, 1, 1f).OnComplete (() => {
+							Destroy (go);
+						});
+
+						SpriteRenderer[] srs = go.GetComponentsInChildren<SpriteRenderer> ();
+						for (int i0 = 0; i0 < srs.Length; i0++) {
+							SpriteRenderer sr = srs [i0];
+							sr.DOFade (0f, 1f);
+						}
+
+						unit.GO.Remove (go);
+					} else {
+						unit.GO.Remove (go);
+						DestroyImmediate (go);
+					}
 				}
 
 				if (newCell.Type != CellType.None) {
@@ -264,7 +289,7 @@ public class Stage : MonoBehaviour, ISer
 
 				if (this.begin_anim_on) {
 					if ((unit.Y) % 2 == 0) {
-						float du = (this.UnitCountX - unit.X) * .04f;
+						float du = (this.UnitCountX - unit.X) * .04f + (this.UnitCountY - unit.Y) * .1f;
 						if (begin_anim_time < du)
 							begin_anim_time = du;
 						SpriteRenderer[] ss = go.GetComponentsInChildren<SpriteRenderer> ();
@@ -275,7 +300,7 @@ public class Stage : MonoBehaviour, ISer
 						go.transform.position = unit.Rect.center + cell_outside_offset_l;
 						go.transform.DOMove (unit.Rect.center, du).SetEase (Ease.OutBack);
 					} else {
-						float du = unit.X * .04f;
+						float du = unit.X * .04f + (this.UnitCountY - unit.Y) * .1f;
 						if (begin_anim_time < du)
 							begin_anim_time = du;
 						SpriteRenderer[] ss = go.GetComponentsInChildren<SpriteRenderer> ();
@@ -376,6 +401,7 @@ public class Stage : MonoBehaviour, ISer
 	public bool need_reload;
 
 	public bool begin_anim_on;
+	public bool remove_anim_on;
 
 	private float begin_anim_time;
 
@@ -450,6 +476,8 @@ public class Stage : MonoBehaviour, ISer
 			spray_disp_0 = Observable.Timer (TimeSpan.FromSeconds (begin_anim_time)).Subscribe (_0 => {
 
 				begin_anim_on = false;
+				remove_anim_on = true;
+
 				EasyTouchSubscribe ();
 
 				spray_disp_1 = Observable.Interval (TimeSpan.FromSeconds (1)).Subscribe (_ => {
@@ -530,7 +558,7 @@ public class Stage : MonoBehaviour, ISer
 		Ray r = Camera.main.ScreenPointToRay (gesture.position);
 		if (Physics.Raycast (r, out hit, float.MaxValue, 1 << LayerMask.NameToLayer ("raycast_collider"))) {
 			Unit u = this.world2unit ((Vector2)hit.point);
-			PRDebug.Log (u.Ser (), Color.yellow);
+//			PRDebug.Log (u.Ser (), Color.yellow);
 
 			if (u != null) {
 				if (u.Cell.Type == CellType.BRICK && fingerCellType == CellType.None) {
