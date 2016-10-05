@@ -7,6 +7,7 @@ using PogoTools;
 using System.Linq;
 using UniRx;
 using HedgehogTeam.EasyTouch;
+using DG.Tweening;
 
 [JsonObject (MemberSerialization.OptIn)]
 public class Stage : MonoBehaviour, ISer
@@ -206,6 +207,10 @@ public class Stage : MonoBehaviour, ISer
 		return name;
 	}
 
+
+	private Vector2 cell_outside_offset_l = new Vector2 (-5f, 0f);
+	private Vector2 cell_outside_offset_r = new Vector2 (5f, 0f);
+
 	public void OnUnitCellChanged (Unit unit, Cell newCell, Cell oldCell)
 	{
 		bool need_add = false;
@@ -254,9 +259,37 @@ public class Stage : MonoBehaviour, ISer
 
 			if (prefab_idx != -1) {
 				GameObject go = Instantiate<GameObject> (UnitPrefab [prefab_idx]);
-				unit.GO.Add (go);
+				unit.GO.Insert (0, go);
 				go.transform.SetParent (BrickContainer);
-				go.transform.position = unit.Rect.center;
+
+				if (this.begin_anim_on) {
+					if ((unit.Y) % 2 == 0) {
+						float du = (this.UnitCountX - unit.X) * .04f;
+						if (begin_anim_time < du)
+							begin_anim_time = du;
+						SpriteRenderer[] ss = go.GetComponentsInChildren<SpriteRenderer> ();
+						for (int i = 0; i < ss.Length; i++) {
+							ss [i].color = new Color (1f, 1f, 1f, 0f);
+							ss [i].DOFade (1f, du / 2f);
+						}
+						go.transform.position = unit.Rect.center + cell_outside_offset_l;
+						go.transform.DOMove (unit.Rect.center, du).SetEase (Ease.OutBack);
+					} else {
+						float du = unit.X * .04f;
+						if (begin_anim_time < du)
+							begin_anim_time = du;
+						SpriteRenderer[] ss = go.GetComponentsInChildren<SpriteRenderer> ();
+						for (int i = 0; i < ss.Length; i++) {
+							ss [i].color = new Color (1f, 1f, 1f, 0f);
+							ss [i].DOFade (1f, du / 2f);
+						}
+						go.transform.position = unit.Rect.center + cell_outside_offset_r;
+						go.transform.DOMove (unit.Rect.center, du).SetEase (Ease.OutBack);
+					}
+				} else {
+					go.transform.position = unit.Rect.center;
+				}
+
 				go.name = MakePrefabName (newCell.Type);
 
 				if (go.CompareTag ("Vortex")) {
@@ -273,7 +306,7 @@ public class Stage : MonoBehaviour, ISer
 		}
 	}
 
-	public void OnStarCollected (Star star)
+	public void OnStarCollected (Star star, Unit unit)
 	{
 		collected_star_count++;
 	}
@@ -318,6 +351,7 @@ public class Stage : MonoBehaviour, ISer
 
 		Initialize ();
 
+		begin_anim_time = 0f;
 		for (int i = 0; i < s.preSerUnits.Count; i++) {
 			Unit u = s.preSerUnits [i];
 			Units [u.Idx].ChangeCellTo (u.Cell);
@@ -341,6 +375,10 @@ public class Stage : MonoBehaviour, ISer
 	public int stage_num;
 	public bool need_reload;
 
+	public bool begin_anim_on;
+
+	private float begin_anim_time;
+
 
 	private static Stage current;
 
@@ -352,19 +390,33 @@ public class Stage : MonoBehaviour, ISer
 
 	public void LoadStage ()
 	{
+		begin_anim_on = true;
+
+		if (spray_disp_0 != null) {
+			spray_disp_0.Dispose ();
+		}
+		if (spray_disp_1 != null) {
+			spray_disp_1.Dispose ();
+		}
+
 		TextAsset ta = Resources.Load<TextAsset> (string.Format ("StageDatas/stage_{0:000}", stage_num));
 		this.Deser (ta.text);
 
-		for (int i = 0; i < BrickContainer.childCount; i++) {
-			Transform t = BrickContainer.GetChild (i);
-			if (t.gameObject.name == "ingame_0") {
-				t.gameObject.SetActive (false);
-			}
-		}
+//		for (int i = 0; i < BrickContainer.childCount; i++) {
+//			Transform t = BrickContainer.GetChild (i);
+//			if (t.gameObject.name == "ingame_0") {
+//				t.gameObject.SetActive (false);
+//			}
+//		}
 
 		StartUnitList = Units.Where (_ => _.Cell.Type == CellType.START).ToList ();
 
 		VortexNeedFull = Units.Where (_ => _.Cell.Type == CellType.FINISH).Count ();
+
+		Units.Where (_ => _.Cell.Type == CellType.STAR).ToList ().ForEach (u0 => {
+			Star star = u0.GO [0].GetComponent<Star> ();
+			star.Unit = u0;
+		});
 
 		need_reload = false;
 	}
@@ -374,9 +426,13 @@ public class Stage : MonoBehaviour, ISer
 	public int enter_vortex_count;
 	public int full_vortex_count;
 
+	IDisposable spray_disp_0;
+	IDisposable spray_disp_1;
+
 	public void StartGame ()
 	{
 		if (need_reload) {
+			EasyTouchUnsubscribe ();
 			LoadStage ();
 		}
 		need_reload = true;
@@ -385,30 +441,42 @@ public class Stage : MonoBehaviour, ISer
 		enter_vortex_count = 0;
 		full_vortex_count = 0;
 
-		EasyTouchSubscribe ();
 		for (int i = 0; i < StartUnitList.Count; i++) {
 			Unit u = StartUnitList [i];
 
 			// idx:5, Ball
 			GameObject go = UnitPrefab [5];
 
-			Observable.Interval (TimeSpan.FromSeconds (1)).Subscribe (_ => {
-				GameObject real = Instantiate<GameObject> (go);
-				real.transform.SetParent (DynamicContainer);
-				real.transform.position = u.Rect.center;
-				real.SetActive (true);
-				Rigidbody2D r2d = real.GetComponent<Rigidbody2D> ();
-				r2d.AddForce (u.Cell.Detail.Direction * 100f);
+			spray_disp_0 = Observable.Timer (TimeSpan.FromSeconds (begin_anim_time)).Subscribe (_0 => {
 
-				Spray spray = u.GO [0].GetComponent<Spray> ();
-				spray.OnSpray ();
+				begin_anim_on = false;
+				EasyTouchSubscribe ();
 
+				spray_disp_1 = Observable.Interval (TimeSpan.FromSeconds (1)).Subscribe (_ => {
+					GameObject real = Instantiate<GameObject> (go);
+					real.transform.SetParent (DynamicContainer);
+					real.transform.position = u.Rect.center;
+					real.SetActive (true);
+					Rigidbody2D r2d = real.GetComponent<Rigidbody2D> ();
+					r2d.AddForce (u.Cell.Detail.Direction * 100f);
+
+					Spray spray = u.GO [0].GetComponent<Spray> ();
+					spray.OnSpray ();
+
+				}).AddTo (go);
 			}).AddTo (go);
 		}
 	}
 
 	public void StopGame ()
 	{
+		if (spray_disp_0 != null) {
+			spray_disp_0.Dispose ();
+		}
+		if (spray_disp_1 != null) {
+			spray_disp_1.Dispose ();
+		}
+
 		EasyTouchUnsubscribe ();
 
 		TextAsset ta = Resources.Load<TextAsset> (string.Format ("StageDatas/stage_{0:000}", 0));
@@ -484,6 +552,7 @@ public class Stage : MonoBehaviour, ISer
 	void OnGUI ()
 	{
 		if (GUILayout.Button ("START")) {
+			need_reload = true;
 			StartGame ();
 		}
 		if (GUILayout.Button ("STOP")) {

@@ -158,6 +158,7 @@ public class StageMaker : EditorWindow
 	{
 		SceneView.onSceneGUIDelegate += SceneGUI;
 		Stage = GameObject.Find ("Stage").GetComponent<Stage> ();
+		Stage.begin_anim_on = false;
 		BrickContainer = Stage.transform.FindChild ("BrickContainer").transform;
 		OnChoosedStageNumChanged ();
 	}
@@ -219,8 +220,10 @@ public class StageMaker : EditorWindow
 		GUILayout.EndHorizontal ();
 
 		GUILayout.BeginHorizontal ();
-		if (GUILayout.Button ("Load"))
+		if (GUILayout.Button ("Load")) {
+			Stage.begin_anim_on = false;
 			LoadFromFile ();
+		}
 		if (GUILayout.Button ("Save"))
 			SaveToFile ();
 		GUILayout.EndHorizontal ();

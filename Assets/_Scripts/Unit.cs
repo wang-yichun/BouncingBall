@@ -29,6 +29,11 @@ public class Unit : ISer
 		this.Cell = cell;
 	}
 
+	public void StarCollect ()
+	{
+		Cell = new Cell () { Type = CellType.None };
+	}
+
 	#region ISer implementation
 
 	public string Ser ()
