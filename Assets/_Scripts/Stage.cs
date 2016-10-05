@@ -335,7 +335,7 @@ public class Stage : MonoBehaviour, ISer
 	void Start ()
 	{
 		current = GameObject.FindGameObjectWithTag ("Stage").GetComponent<Stage> ();
-		LoadStage ();
+//		LoadStage ();
 	}
 
 	public int stage_num;

@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: b14305a71276c4021a12e2cc5a83e501
-timeCreated: 1475402369
+timeCreated: 1475660114
 licenseType: Pro
 TextureImporter:
   fileIDToRecycleName:
@@ -156,7 +156,7 @@ TextureImporter:
         width: 40
         height: 53
       alignment: 9
-      pivot: {x: 0.5, y: 0.38}
+      pivot: {x: 0.5, y: 0.37}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
@@ -168,6 +168,19 @@ TextureImporter:
         y: 39
         width: 50
         height: 50
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: ingame_8
+      rect:
+        serializedVersion: 2
+        x: 548
+        y: 33
+        width: 60
+        height: 60
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
