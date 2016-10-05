@@ -29,6 +29,13 @@ public class LevelButton : MonoBehaviour
 	void Clicked ()
 	{
 		Stage.Current.stage_num = this.stageNum;
-		Stage.Current.LoadStage ();
+//		Stage.Current.LoadStage ();
+		Stage.Current.StartGame ();
+
+		GameObject menuGO = MenuManagerEx.GetMenuGOByName ("InGameHudMenu");
+		InGameHudMenu menu = menuGO.GetComponent<InGameHudMenu> ();
+		menu.SetStageNum (this.stageNum);
+
+		MenuManagerEx.Instance.GoToMenu ("InGameHudMenu");
 	}
 }

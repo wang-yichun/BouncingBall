@@ -398,6 +398,10 @@ public class Stage : MonoBehaviour, ISer
 	void Start ()
 	{
 		current = GameObject.FindGameObjectWithTag ("Stage").GetComponent<Stage> ();
+
+		StopGame ();
+		remove_anim_on = true;
+		EasyTouchSubscribe ();
 //		LoadStage ();
 	}
 
@@ -529,6 +533,8 @@ public class Stage : MonoBehaviour, ISer
 		}
 		AnimClearStage ();
 		is_win = true;
+
+		MenuManagerEx.Instance.GoBack ();
 	}
 
 	void EasyTouchSubscribe ()
@@ -554,7 +560,7 @@ public class Stage : MonoBehaviour, ISer
 		Ray r = Camera.main.ScreenPointToRay (gesture.position);
 		if (Physics.Raycast (r, out hit, float.MaxValue, 1 << LayerMask.NameToLayer ("raycast_collider"))) {
 			Unit u = this.world2unit ((Vector2)hit.point);
-			PRDebug.Log (u.Ser (), Color.yellow);
+//			PRDebug.Log (u.Ser (), Color.yellow);
 
 			if (u != null) {
 				if (u.Cell.Type == CellType.BRICK) {
