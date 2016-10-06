@@ -91,27 +91,49 @@ public class StageMaker : EditorWindow
 								}
 							}
 						} else {
-							Unit[] us = GetMousePositionUnits ();
-							if (us != null) {
-								bool changed = false;
-								for (int i = 0; i < us.Length; i++) {
-									Unit u = us [i];
-									if (u != null) {
-										if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
+							if (tbh_cell_type [tbh_gird_mode_idx] == CellType.START ||
+							    tbh_cell_type [tbh_gird_mode_idx] == CellType.FINISH) {
+								Unit u = GetMousePositionUnit ();
+								if (u != null) {
+									if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
 
-											Cell cell = new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] };
-											if (cell.Type == CellType.START ||
-											    cell.Type == CellType.FINISH) {
-												cell.Detail = new CellDetail ();
-											}
-
-											u.ChangeCellTo (cell);
-											changed = true;
+										Cell cell = new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] };
+										cell.Detail = new CellDetail ();
+										if (cell.Type == CellType.FINISH) {
+											cell.Detail.VortexNeedCount = 5;
 										}
+
+										u.ChangeCellTo (cell);
 									}
 								}
-								if (changed) {
-									OnStageEdited ();
+
+							} else {
+
+								Unit[] us = GetMousePositionUnits ();
+								if (us != null) {
+									bool changed = false;
+									for (int i = 0; i < us.Length; i++) {
+										Unit u = us [i];
+										if (u != null) {
+											if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
+
+												Cell cell = new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] };
+												if (cell.Type == CellType.START) {
+													cell.Detail = new CellDetail ();
+												}
+												if (cell.Type == CellType.FINISH) {
+													cell.Detail = new CellDetail ();
+													cell.Detail.VortexNeedCount = 5;
+												}
+
+												u.ChangeCellTo (cell);
+												changed = true;
+											}
+										}
+									}
+									if (changed) {
+										OnStageEdited ();
+									}
 								}
 							}
 						}
@@ -188,6 +210,22 @@ public class StageMaker : EditorWindow
 					}
 				}
 			}
+
+			if (Event.current.keyCode != KeyCode.None) {
+				PRDebug.Log (Event.current.keyCode.ToString ());
+			}
+
+			if (Event.current.command) {
+				if (Event.current.keyCode == KeyCode.LeftArrow) {
+					Stage.OnUnitCellTranslation (-1, 0);
+				} else if (Event.current.keyCode == KeyCode.RightArrow) {
+					Stage.OnUnitCellTranslation (1, 0);
+				} else if (Event.current.keyCode == KeyCode.UpArrow) {
+					Stage.OnUnitCellTranslation (0, 1);
+				} else if (Event.current.keyCode == KeyCode.DownArrow) {
+					Stage.OnUnitCellTranslation (0, -1);
+				}
+			}
 		}
 	}
 
@@ -251,6 +289,23 @@ public class StageMaker : EditorWindow
 
 		brushWidth = EditorGUILayout.IntSlider ("画刷 Width", brushWidth, 1, 5);
 		brushHeight = EditorGUILayout.IntSlider ("画刷 Height", brushHeight, 1, 5);
+
+		GUILayout.BeginHorizontal ("box");
+		GUILayout.Label ("整体平移");
+		if (GUILayout.Button ("Left")) {
+			Stage.OnUnitCellTranslation (-1, 0);
+		}
+		if (GUILayout.Button ("Up")) {
+			Stage.OnUnitCellTranslation (0, 1);
+		}
+		if (GUILayout.Button ("Down")) {
+			Stage.OnUnitCellTranslation (0, -1);
+		}
+		if (GUILayout.Button ("Right")) {
+			Stage.OnUnitCellTranslation (1, 0);
+		}
+
+		GUILayout.EndHorizontal ();
 
 		EditorGUILayout.EndToggleGroup ();
 

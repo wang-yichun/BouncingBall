@@ -44,6 +44,11 @@ public class Stage : MonoBehaviour, ISer
 	public Unit SMUnit_LB;
 	public Unit SMUnit_RT;
 
+	public bool check (int x, int y)
+	{
+		return x >= 0 && x < UnitCountX && y >= 0 && y < UnitCountY;
+	}
+
 	public int xy2idx (int x, int y)
 	{
 		return y * UnitCountX + x;
@@ -290,9 +295,65 @@ public class Stage : MonoBehaviour, ISer
 		return name;
 	}
 
-
 	private Vector2 cell_outside_offset_l = new Vector2 (-5f, 0f);
 	private Vector2 cell_outside_offset_r = new Vector2 (5f, 0f);
+
+	public void OnUnitCellTranslation (int x_offset, int y_offset)
+	{
+		if (x_offset >= 0) {
+			if (y_offset >= 0) {
+				for (int x = UnitCountX - 1; x >= 0; x--) {
+					for (int y = UnitCountY - 1; y >= 0; y--) {
+						Unit src = Units [xy2idx (x, y)];
+						int dest_x = x + x_offset;
+						int dest_y = y + y_offset;
+						if (check (dest_x, dest_y)) {
+							Unit dest = Units [xy2idx (dest_x, dest_y)];
+							dest.ChangeCellTo (src.Cell);
+						}
+					}
+				}
+			} else {
+				for (int x = UnitCountX - 1; x >= 0; x--) {
+					for (int y = 0; y < UnitCountY; y++) {
+						Unit src = Units [xy2idx (x, y)];
+						int dest_x = x + x_offset;
+						int dest_y = y + y_offset;
+						if (check (dest_x, dest_y)) {
+							Unit dest = Units [xy2idx (dest_x, dest_y)];
+							dest.ChangeCellTo (src.Cell);
+						}
+					}
+				}
+			}
+		} else {
+			if (y_offset >= 0) {
+				for (int x = 0; x < UnitCountX; x++) {
+					for (int y = UnitCountY - 1; y >= 0; y--) {
+						Unit src = Units [xy2idx (x, y)];
+						int dest_x = x + x_offset;
+						int dest_y = y + y_offset;
+						if (check (dest_x, dest_y)) {
+							Unit dest = Units [xy2idx (dest_x, dest_y)];
+							dest.ChangeCellTo (src.Cell);
+						}
+					}
+				}
+			} else {
+				for (int x = 0; x < UnitCountX; x++) {
+					for (int y = 0; y < UnitCountY; y++) {
+						Unit src = Units [xy2idx (x, y)];
+						int dest_x = x + x_offset;
+						int dest_y = y + y_offset;
+						if (check (dest_x, dest_y)) {
+							Unit dest = Units [xy2idx (dest_x, dest_y)];
+							dest.ChangeCellTo (src.Cell);
+						}
+					}
+				}
+			}
+		}
+	}
 
 	public void OnUnitCellChanged (Unit unit, Cell newCell, Cell oldCell)
 	{
