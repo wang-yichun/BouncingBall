@@ -41,6 +41,8 @@ public class Stage : MonoBehaviour, ISer
 	public Transform DynamicContainer;
 
 	public Unit SMFocusUnit;
+	public Unit SMUnit_LB;
+	public Unit SMUnit_RT;
 
 	public int xy2idx (int x, int y)
 	{
@@ -62,6 +64,67 @@ public class Stage : MonoBehaviour, ISer
 			if (idx >= 0 && idx < UnitCount) {
 				return Units [idx];
 			}
+		}
+		return null;
+	}
+
+	public Unit[] world2Units (Vector2 worldPos, int brushWidth, int brushHeight)
+	{
+		if (Units == null)
+			Initialize ();
+
+		float nor_x = worldPos.x + TotalRect.width / 2f;
+		float nor_y = worldPos.y + TotalRect.height / 2f;
+
+		if (nor_x >= 0 && nor_x < TotalRect.width && nor_y >= 0 && nor_y < TotalRect.height) {
+			// Get X
+			List<int> xs = new List<int> ();
+			if (brushWidth % 2 == 0) {
+				int x = Mathf.FloorToInt ((worldPos.x + TotalRect.width / 2f + UnitRect.width / 2f) / UnitRect.width);
+				for (int i = 0; i < brushWidth; i++) {
+					int x1 = i - brushWidth / 2 + x;
+					if (x1 >= 0 && x1 < UnitCountX)
+						xs.Add (x1);
+				}
+			} else {
+				int x = Mathf.FloorToInt ((worldPos.x + TotalRect.width / 2f) / UnitRect.width);
+				for (int i = 0; i < brushWidth; i++) {
+					int x1 = i - brushWidth / 2 + x;
+					if (x1 >= 0 && x1 < UnitCountX)
+						xs.Add (x1);
+				}
+			}
+
+			// Get Y
+			List<int> ys = new List<int> ();
+			if (brushHeight % 2 == 0) {
+				int y = Mathf.FloorToInt ((worldPos.y + TotalRect.height / 2f + UnitRect.height / 2f) / UnitRect.height);
+				for (int i = 0; i < brushHeight; i++) {
+					int y1 = i - brushHeight / 2 + y;
+					if (y1 >= 0 && y1 < UnitCountY)
+						ys.Add (y1);
+				}
+			} else {
+				int y = Mathf.FloorToInt ((worldPos.y + TotalRect.height / 2f) / UnitRect.height);
+				for (int i = 0; i < brushHeight; i++) {
+					int y1 = i - brushHeight / 2 + y;
+					if (y1 >= 0 && y1 < UnitCountY)
+						ys.Add (y1);
+				}
+			}
+
+//			int y = Mathf.FloorToInt ((worldPos.y + TotalRect.height / 2f) / UnitRect.height);
+
+			List<Unit> units = new List<Unit> ();
+			for (int n = 0; n < ys.Count; n++) {
+				int y = ys [n];
+				for (int m = 0; m < xs.Count; m++) {
+					int x = xs [m];
+					int idx = xy2idx (x, y);
+					units.Add (Units [idx]);
+				}
+			}
+			return units.ToArray ();
 		}
 		return null;
 	}
@@ -165,6 +228,26 @@ public class Stage : MonoBehaviour, ISer
 				new Vector3 (SMFocusUnit.Rect.x + SMFocusUnit.Rect.width, SMFocusUnit.Rect.y + SMFocusUnit.Rect.height - 100, 0f),
 				new Vector3 (SMFocusUnit.Rect.x + SMFocusUnit.Rect.width, SMFocusUnit.Rect.y + SMFocusUnit.Rect.height + 100, 0f)
 			);
+
+			Gizmos.color = Color.yellow;
+			if (SMUnit_LB != null && SMUnit_RT != null) {
+				Gizmos.DrawLine (
+					new Vector3 (SMUnit_LB.Rect.x - 100f, SMUnit_LB.Rect.y, 0f),
+					new Vector3 (SMUnit_LB.Rect.x + 100f, SMUnit_LB.Rect.y, 0f)
+				);
+				Gizmos.DrawLine (
+					new Vector3 (SMUnit_LB.Rect.x, SMUnit_LB.Rect.y - 100f, 0f),
+					new Vector3 (SMUnit_LB.Rect.x, SMUnit_LB.Rect.y + 100f, 0f)
+				);
+				Gizmos.DrawLine (
+					new Vector3 (SMUnit_RT.Rect.x + SMUnit_RT.Rect.width - 100f, SMUnit_RT.Rect.y + SMUnit_RT.Rect.height, 0f),
+					new Vector3 (SMUnit_RT.Rect.x + SMUnit_RT.Rect.width + 100f, SMUnit_RT.Rect.y + SMUnit_RT.Rect.height, 0f)
+				);
+				Gizmos.DrawLine (
+					new Vector3 (SMUnit_RT.Rect.x + SMUnit_RT.Rect.width, SMUnit_RT.Rect.y + SMUnit_RT.Rect.height - 100, 0f),
+					new Vector3 (SMUnit_RT.Rect.x + SMUnit_RT.Rect.width, SMUnit_RT.Rect.y + SMUnit_RT.Rect.height + 100, 0f)
+				);
+			}
 
 			if (start_cell_choose_mode) {
 				Gizmos.color = Color.blue;

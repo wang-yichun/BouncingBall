@@ -39,7 +39,19 @@ public class StageMaker : EditorWindow
 		return null;
 	}
 
+	Unit[] GetMousePositionUnits ()
+	{
+		mousePositionRay = HandleUtility.GUIPointToWorldRay (Event.current.mousePosition);
+		if (Physics.Raycast (mousePositionRay, out hit, float.MaxValue, 1 << LayerMask.NameToLayer ("raycast_collider"))) {
+			return Stage.world2Units (hit.point, brushWidth, brushHeight);
+		}
+		return null;
+	}
+
 	public Unit lastUnit;
+	public Unit lastUnit_LB;
+	public Unit lastUnit_RT;
+
 	public bool StartCellChooseMode = false;
 
 	private void SceneGUI (SceneView sceneView)
@@ -64,27 +76,41 @@ public class StageMaker : EditorWindow
 
 					} else {
 						if (Event.current.control) {
-							// Ctrl + 左键
-							Unit u = GetMousePositionUnit ();
-							if (u != null) {
-								if (CellType.NONE != u.Cell.Type) {
-									u.ChangeCellTo (new Cell (){ Type = CellType.NONE });
+							Unit[] us = GetMousePositionUnits ();
+							if (us != null) {
+								bool changed = false;
+								for (int i = 0; i < us.Length; i++) {
+									Unit u = us [i];
+									if (CellType.NONE != u.Cell.Type) {
+										u.ChangeCellTo (new Cell (){ Type = CellType.NONE });
+										changed = true;
+									}
+								}
+								if (changed) {
 									OnStageEdited ();
 								}
 							}
 						} else {
-							// 左键
-							Unit u = GetMousePositionUnit ();
-							if (u != null) {
-								if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
+							Unit[] us = GetMousePositionUnits ();
+							if (us != null) {
+								bool changed = false;
+								for (int i = 0; i < us.Length; i++) {
+									Unit u = us [i];
+									if (u != null) {
+										if (tbh_cell_type [tbh_gird_mode_idx] != u.Cell.Type) {
 
-									Cell cell = new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] };
-									if (cell.Type == CellType.START ||
-									    cell.Type == CellType.FINISH) {
-										cell.Detail = new CellDetail ();
+											Cell cell = new Cell (){ Type = tbh_cell_type [tbh_gird_mode_idx] };
+											if (cell.Type == CellType.START ||
+											    cell.Type == CellType.FINISH) {
+												cell.Detail = new CellDetail ();
+											}
+
+											u.ChangeCellTo (cell);
+											changed = true;
+										}
 									}
-
-									u.ChangeCellTo (cell);
+								}
+								if (changed) {
 									OnStageEdited ();
 								}
 							}
@@ -95,6 +121,9 @@ public class StageMaker : EditorWindow
 
 			if (Event.current.type == EventType.MouseDown && Event.current.button == 1) {
 				Unit u = GetMousePositionUnit ();
+				Unit[] us = GetMousePositionUnits ();
+				lastUnit_LB = us [0];
+				lastUnit_RT = us [us.Length - 1];
 				lastUnit = u;
 				StartCellChooseMode = false;
 				Stage.start_cell_choose_mode = false;
@@ -125,13 +154,37 @@ public class StageMaker : EditorWindow
 					} else if (lastUnit == null) {
 						Stage.SMFocusUnit = null;
 					}
+
 				} else {
+
 					Unit u = GetMousePositionUnit ();
 					if (Stage.SMFocusUnit != u) {
 						Stage.SMFocusUnit = u;
 						SceneView.RepaintAll ();
 					} else if (u == null) {
 						Stage.SMFocusUnit = null;
+					}
+
+					Unit[] us = GetMousePositionUnits ();
+					if (us == null) {
+						if (Stage.SMUnit_LB != null || Stage.SMUnit_RT != null) {
+							Stage.SMUnit_LB = null;
+							Stage.SMUnit_RT = null;
+							SceneView.RepaintAll ();
+						}
+					} else {
+						if (Stage.SMUnit_LB != us [0]) {
+							Stage.SMUnit_LB = us [0];
+							SceneView.RepaintAll ();
+						} else if (us [0] == null) {
+							Stage.SMUnit_LB = null;
+						}
+						if (Stage.SMUnit_RT != us [us.Length - 1]) {
+							Stage.SMUnit_RT = us [us.Length - 1];
+							SceneView.RepaintAll ();
+						} else if (us [us.Length - 1] == null) {
+							Stage.SMUnit_RT = null;
+						}
 					}
 				}
 			}
@@ -151,6 +204,8 @@ public class StageMaker : EditorWindow
 		CellType.FINISH,
 		CellType.FIXED
 	};
+	public int brushWidth;
+	public int brushHeight;
 
 	public Stage Stage;
 	public Transform BrickContainer;
@@ -193,6 +248,9 @@ public class StageMaker : EditorWindow
 
 
 		tbh_gird_mode_idx = GUILayout.Toolbar (tbh_gird_mode_idx, tbh_gird_mode);
+
+		brushWidth = EditorGUILayout.IntSlider ("画刷 Width", brushWidth, 1, 5);
+		brushHeight = EditorGUILayout.IntSlider ("画刷 Height", brushHeight, 1, 5);
 
 		EditorGUILayout.EndToggleGroup ();
 
