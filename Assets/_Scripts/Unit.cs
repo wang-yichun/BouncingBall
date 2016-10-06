@@ -31,7 +31,12 @@ public class Unit : ISer
 
 	public void StarCollect ()
 	{
-		Cell = new Cell () { Type = CellType.None };
+		Cell = new Cell () { Type = CellType.NONE };
+	}
+
+	public void VortexFull ()
+	{
+		Cell = new Cell () { Type = CellType.NONE };
 	}
 
 	#region ISer implementation

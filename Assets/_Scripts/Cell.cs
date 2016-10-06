@@ -4,13 +4,14 @@ using Newtonsoft.Json;
 
 public enum CellType
 {
-	None,
+	NONE,
 	START,
 	BRICK,
 	STAR,
 	GEM,
 	FINISH,
-	BALL
+	BALL,
+	FIXED
 }
 
 [JsonObject (MemberSerialization.OptIn)]

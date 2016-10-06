@@ -105,7 +105,7 @@ public class Stage : MonoBehaviour, ISer
 					Y = y,
 					Idx = idx,
 					Rect = rect,
-					Cell = new Cell (){ Type = CellType.None },
+					Cell = new Cell (){ Type = CellType.NONE },
 					GO = new List<GameObject> ()
 				};
 			}
@@ -182,7 +182,7 @@ public class Stage : MonoBehaviour, ISer
 	{
 		string name = null;
 		switch (cellType) {
-		case CellType.None:
+		case CellType.NONE:
 			name = "";
 			break;
 		case CellType.START:
@@ -215,7 +215,7 @@ public class Stage : MonoBehaviour, ISer
 	{
 		bool need_add = false;
 		if (unit.GO.Count == 0) {
-			if (newCell.Type != CellType.None) {
+			if (newCell.Type != CellType.NONE) {
 				need_add = true;
 			}
 		} else {
@@ -256,7 +256,7 @@ public class Stage : MonoBehaviour, ISer
 					}
 				}
 
-				if (newCell.Type != CellType.None) {
+				if (newCell.Type != CellType.NONE) {
 					need_add = true;
 				}
 			}
@@ -265,7 +265,7 @@ public class Stage : MonoBehaviour, ISer
 		if (need_add) {
 			int prefab_idx = -1;
 			switch (newCell.Type) {
-			case CellType.None:
+			case CellType.NONE:
 				break;
 			case CellType.START:
 				prefab_idx = 0;
@@ -281,6 +281,9 @@ public class Stage : MonoBehaviour, ISer
 				break;
 			case CellType.FINISH:
 				prefab_idx = 4;
+				break;
+			case CellType.FIXED:
+				prefab_idx = 6;
 				break;
 			default:
 				throw new ArgumentOutOfRangeException ();
@@ -364,7 +367,7 @@ public class Stage : MonoBehaviour, ISer
 		preSerUnits = new List<Unit> ();
 		for (int i = 0; i < Units.Length; i++) {
 			Unit u = Units [i];
-			if (u.Cell.Type != CellType.None) {
+			if (u.Cell.Type != CellType.NONE) {
 				preSerUnits.Add (u);
 			}
 		}
@@ -453,6 +456,11 @@ public class Stage : MonoBehaviour, ISer
 		Units.Where (_ => _.Cell.Type == CellType.STAR).ToList ().ForEach (u0 => {
 			Star star = u0.GO [0].GetComponent<Star> ();
 			star.Unit = u0;
+		});
+
+		Units.Where (_ => _.Cell.Type == CellType.FINISH).ToList ().ForEach (u0 => {
+			Vortex vortex = u0.GO [0].GetComponent<Vortex> ();
+			vortex.Unit = u0;
 		});
 
 		need_reload = false;
@@ -564,14 +572,14 @@ public class Stage : MonoBehaviour, ISer
 
 			if (u != null) {
 				if (u.Cell.Type == CellType.BRICK) {
-					u.ChangeCellTo (new Cell (){ Type = CellType.None });
-					fingerCellType = CellType.None;
-				} else if (u.Cell.Type == CellType.None) {
+					u.ChangeCellTo (new Cell (){ Type = CellType.NONE });
+					fingerCellType = CellType.NONE;
+				} else if (u.Cell.Type == CellType.NONE) {
 					u.ChangeCellTo (new Cell (){ Type = CellType.BRICK });
 					fingerCellType = CellType.BRICK;
 
 					if (is_win) {
-						u.ChangeCellTo (new Cell (){ Type = CellType.None });
+						u.ChangeCellTo (new Cell (){ Type = CellType.NONE });
 					}
 				}
 			}
@@ -586,13 +594,13 @@ public class Stage : MonoBehaviour, ISer
 //			PRDebug.Log (u.Ser (), Color.yellow);
 
 			if (u != null) {
-				if (u.Cell.Type == CellType.BRICK && fingerCellType == CellType.None) {
-					u.ChangeCellTo (new Cell (){ Type = CellType.None });
-				} else if (u.Cell.Type == CellType.None && fingerCellType == CellType.BRICK) {
+				if (u.Cell.Type == CellType.BRICK && fingerCellType == CellType.NONE) {
+					u.ChangeCellTo (new Cell (){ Type = CellType.NONE });
+				} else if (u.Cell.Type == CellType.NONE && fingerCellType == CellType.BRICK) {
 					u.ChangeCellTo (new Cell (){ Type = CellType.BRICK });
 
 					if (is_win) {
-						u.ChangeCellTo (new Cell (){ Type = CellType.None });
+						u.ChangeCellTo (new Cell (){ Type = CellType.NONE });
 					}
 				}
 			}
@@ -621,7 +629,7 @@ public class Stage : MonoBehaviour, ISer
 	{
 		for (int i = 0; i < Units.Length; i++) {
 			Unit u = Units [i];
-			u.ChangeCellTo (new Cell (){ Type = CellType.None });
+			u.ChangeCellTo (new Cell (){ Type = CellType.NONE });
 		}
 	}
 }

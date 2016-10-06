@@ -67,8 +67,8 @@ public class StageMaker : EditorWindow
 							// Ctrl + 左键
 							Unit u = GetMousePositionUnit ();
 							if (u != null) {
-								if (CellType.None != u.Cell.Type) {
-									u.ChangeCellTo (new Cell (){ Type = CellType.None });
+								if (CellType.NONE != u.Cell.Type) {
+									u.ChangeCellTo (new Cell (){ Type = CellType.NONE });
 									OnStageEdited ();
 								}
 							}
@@ -140,15 +140,16 @@ public class StageMaker : EditorWindow
 
 	public bool editEnable = false;
 
-	private static string[] tbh_gird_mode = new string[] { "空", "起点", "方块", "星星", "宝石", "漩涡" };
+	private static string[] tbh_gird_mode = new string[] { "空", "起点", "方块", "星星", "宝石", "漩涡", "固定方块" };
 	public int tbh_gird_mode_idx;
-	public CellType[] tbh_cell_type = new CellType[] {
-		CellType.None,
+	public static CellType[] tbh_cell_type = new CellType[] {
+		CellType.NONE,
 		CellType.START,
 		CellType.BRICK,
 		CellType.STAR,
 		CellType.GEM,
-		CellType.FINISH
+		CellType.FINISH,
+		CellType.FIXED
 	};
 
 	public Stage Stage;
