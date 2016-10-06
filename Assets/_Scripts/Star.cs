@@ -7,6 +7,9 @@ public class Star : MonoBehaviour
 
 	void OnTriggerEnter2D (Collider2D other)
 	{
+		if (Stage.Current.ignoreStar)
+			return;
+		
 		if (other.CompareTag ("Ball")) {
 			this.gameObject.SetActive (false);
 			Unit.StarCollect ();

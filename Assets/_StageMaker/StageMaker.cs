@@ -434,6 +434,9 @@ public class StageMaker : EditorWindow
 
 	public void OnChoosedStageNumChanged ()
 	{
+		if (Stage.Current != null) {
+			Stage.Current.stage_num = choosed_stage_num;
+		}
 		if (auto_load) {
 			LoadFromFile ();
 		}

@@ -562,6 +562,8 @@ public class Stage : MonoBehaviour, ISer
 
 	public bool is_win;
 
+	public bool ignoreStar;
+	public bool ignoreVortex;
 
 	private static Stage current;
 

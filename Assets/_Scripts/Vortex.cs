@@ -11,6 +11,9 @@ public class Vortex : MonoBehaviour
 
 	void OnTriggerEnter2D (Collider2D other)
 	{
+		if (Stage.Current.ignoreVortex)
+			return;
+
 		if (other.gameObject.CompareTag ("Ball")) {
 			if (CurrentCount < NeedCount) {
 				CurrentCount++;
